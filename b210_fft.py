@@ -374,18 +374,19 @@ class MainWindow(QWidget):
         self._timer.timeout.connect(lambda: None)
         self._timer.start(100)
 
-        self.setWindowTitle("USRP B210 — receiver (FFT)")
-        self.resize(900, 900)
+        self.setWindowTitle("B210 FFT")
+        self.resize(800, 480)
+
+        small_font = QFont()
+        small_font.setPointSize(8)
+        self.setFont(small_font)
 
         root = QVBoxLayout(self)
+        root.setContentsMargins(4, 4, 4, 4)
+        root.setSpacing(2)
 
         intro = QLabel(
-            "<b>FFT on every receive-capable jack.</b> The line below shows the active mode and RX port; "
-            "use <b>Show different mode &amp; receive port…</b> to change them (same idea as "
-            "<b>Show advanced parameters…</b>). "
-            "Channel A/B × RX2 or TX/RX selects the UHD RX path — TX/RX can be receive-only on that jack.<br>"
-            "• <b>RX only</b>: external signal into the selected connector.<br>"
-            "• <b>TX/RX test</b>: internal tone + FFT on the selected RX port (use cable/attenuator as needed)."
+            "<b>RX only</b>: external signal · <b>TX/RX</b>: internal tone + FFT"
         )
         intro.setWordWrap(True)
         root.addWidget(intro)
@@ -393,17 +394,17 @@ class MainWindow(QWidget):
         self._mode_port_summary = QLabel()
         self._mode_port_summary.setWordWrap(True)
 
-        self._btn_mode_port = QPushButton("Show different mode & receive port…")
+        self._btn_mode_port = QPushButton("Mode/Port…")
         self._btn_mode_port.setCheckable(True)
         self._btn_mode_port.setChecked(False)
         self._btn_mode_port.toggled.connect(self._on_mode_port_toggled)
 
-        mode_box = QGroupBox("Mode (both show the RX spectrum)")
+        mode_box = QGroupBox("Mode")
         mode_layout = QVBoxLayout(mode_box)
-        self._rb_rx_only = QRadioButton("RX only — no transmission from the B210")
-        self._rb_txrx = QRadioButton(
-            "TX/RX test — TX tone + RX spectrum (validation on receive path)"
-        )
+        mode_layout.setContentsMargins(4, 4, 4, 4)
+        mode_layout.setSpacing(1)
+        self._rb_rx_only = QRadioButton("RX only")
+        self._rb_txrx = QRadioButton("TX/RX test")
         self._rb_rx_only.setChecked(True)
         self._grp_mode = QButtonGroup(self)
         self._grp_mode.addButton(self._rb_rx_only)
@@ -411,21 +412,15 @@ class MainWindow(QWidget):
         mode_layout.addWidget(self._rb_rx_only)
         mode_layout.addWidget(self._rb_txrx)
 
-        port_box = QGroupBox("Receive port (FFT uses this RX path)")
+        port_box = QGroupBox("RX Port")
         port_layout = QVBoxLayout(port_box)
+        port_layout.setContentsMargins(4, 4, 4, 4)
+        port_layout.setSpacing(1)
         self._grp_port = QButtonGroup(self)
-        self._rb_a_rx2 = QRadioButton(
-            "Channel A — RX2 (dedicated receive jack on RF chain A)"
-        )
-        self._rb_a_txrx = QRadioButton(
-            "Channel A — TX/RX (shared jack — receive on this connector)"
-        )
-        self._rb_b_rx2 = QRadioButton(
-            "Channel B — RX2 (dedicated receive jack on RF chain B)"
-        )
-        self._rb_b_txrx = QRadioButton(
-            "Channel B — TX/RX (shared jack — receive on this connector)"
-        )
+        self._rb_a_rx2 = QRadioButton("A — RX2")
+        self._rb_a_txrx = QRadioButton("A — TX/RX")
+        self._rb_b_rx2 = QRadioButton("B — RX2")
+        self._rb_b_txrx = QRadioButton("B — TX/RX")
         self._rb_a_txrx.setChecked(True)
         for rb in (
             self._rb_a_rx2,
@@ -442,6 +437,7 @@ class MainWindow(QWidget):
         self._mode_port_panel = QWidget()
         mp_layout = QVBoxLayout(self._mode_port_panel)
         mp_layout.setContentsMargins(0, 0, 0, 0)
+        mp_layout.setSpacing(2)
         mp_layout.addWidget(mode_box)
         mp_layout.addWidget(port_box)
         self._mode_port_panel.setVisible(False)
@@ -462,26 +458,26 @@ class MainWindow(QWidget):
 
         self._update_mode_port_summary()
 
-        # Essential controls (always visible)
         main_box = QGroupBox("Tuning")
         main_form = QFormLayout(main_box)
+        main_form.setContentsMargins(4, 4, 4, 4)
+        main_form.setSpacing(2)
         self._freq_mhz = QDoubleSpinBox()
         self._freq_mhz.setRange(1.0, 6000.0)
         self._freq_mhz.setDecimals(3)
         self._freq_mhz.setValue(100.0)
         self._freq_mhz.setSuffix(" MHz")
-        main_form.addRow("Center frequency:", self._freq_mhz)
+        main_form.addRow("Freq:", self._freq_mhz)
 
         self._rx_gain = QDoubleSpinBox()
         self._rx_gain.setRange(0.0, 76.0)
         self._rx_gain.setDecimals(1)
         self._rx_gain.setValue(40.0)
         self._rx_gain.setSuffix(" dB")
-        main_form.addRow("RX gain:", self._rx_gain)
+        main_form.addRow("RX Gain:", self._rx_gain)
         root.addWidget(main_box)
 
-        # Advanced parameters (hidden by default)
-        self._btn_advanced = QPushButton("Show advanced parameters…")
+        self._btn_advanced = QPushButton("Advanced…")
         self._btn_advanced.setCheckable(True)
         self._btn_advanced.setChecked(False)
         self._btn_advanced.toggled.connect(self._on_advanced_toggled)
@@ -489,62 +485,59 @@ class MainWindow(QWidget):
 
         self._advanced = QWidget()
         adv_layout = QVBoxLayout(self._advanced)
+        adv_layout.setContentsMargins(0, 0, 0, 0)
+        adv_layout.setSpacing(2)
         adv_box = QGroupBox("Advanced")
         form = QFormLayout(adv_box)
+        form.setContentsMargins(4, 4, 4, 4)
+        form.setSpacing(2)
         self._device_args = QLineEdit(default_device_args)
-        form.addRow("UHD device args:", self._device_args)
+        form.addRow("Args:", self._device_args)
 
         self._rate_msps = QDoubleSpinBox()
         self._rate_msps.setRange(0.25, 40.0)
         self._rate_msps.setDecimals(3)
         self._rate_msps.setValue(4.0)
         self._rate_msps.setSuffix(" Msps")
-        form.addRow("Sample rate:", self._rate_msps)
+        form.addRow("Rate:", self._rate_msps)
 
         self._fft = QSpinBox()
         self._fft.setRange(256, 8192)
         self._fft.setSingleStep(256)
         self._fft.setValue(1024)
-        form.addRow("FFT size:", self._fft)
+        form.addRow("FFT:", self._fft)
 
-        self._peak_max_hold = QCheckBox(
-            "Parallel FFT: running max-hold per bin (spectrum above stays real-time / independent)"
-        )
+        self._peak_max_hold = QCheckBox("Max-hold")
         self._peak_max_hold.setChecked(True)
-        self._peak_max_hold.setToolTip(
-            "If off, peak readout uses each FFT frame only (no accumulation). "
-            "Display is always the GNU Radio freq sink."
-        )
-        form.addRow("Peak bins:", self._peak_max_hold)
+        self._peak_max_hold.setToolTip("Running max-hold per bin for peak readout")
+        form.addRow("Peak:", self._peak_max_hold)
 
         self._peak_stride = QSpinBox()
         self._peak_stride.setRange(1, 128)
         self._peak_stride.setValue(8)
-        self._peak_stride.setToolTip(
-            "Update peak/SNR text every N FFT vectors (lower = faster refresh, more CPU)."
-        )
-        form.addRow("Peak readout every N FFTs:", self._peak_stride)
+        self._peak_stride.setToolTip("Update peak every N FFTs")
+        form.addRow("Stride:", self._peak_stride)
 
         self._tx_gain = QDoubleSpinBox()
         self._tx_gain.setRange(0.0, 90.0)
         self._tx_gain.setDecimals(1)
         self._tx_gain.setValue(20.0)
         self._tx_gain.setSuffix(" dB")
-        form.addRow("TX gain (TX/RX mode):", self._tx_gain)
+        form.addRow("TX Gain:", self._tx_gain)
 
         self._tx_off_khz = QDoubleSpinBox()
         self._tx_off_khz.setRange(1.0, 5000.0)
         self._tx_off_khz.setDecimals(1)
         self._tx_off_khz.setValue(100.0)
         self._tx_off_khz.setSuffix(" kHz")
-        form.addRow("Tone offset / expected peak (from center):", self._tx_off_khz)
+        form.addRow("Offset:", self._tx_off_khz)
 
         self._tx_ampl = QDoubleSpinBox()
         self._tx_ampl.setRange(0.01, 1.0)
         self._tx_ampl.setDecimals(3)
         self._tx_ampl.setValue(0.2)
         self._tx_ampl.setSingleStep(0.05)
-        form.addRow("TX baseband amplitude:", self._tx_ampl)
+        form.addRow("Ampl:", self._tx_ampl)
 
         adv_layout.addWidget(adv_box)
         self._advanced.setVisible(False)
@@ -554,6 +547,7 @@ class MainWindow(QWidget):
         self._rb_txrx.toggled.connect(self._sync_tx_controls)
 
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(4)
         self._btn_start = QPushButton("Start")
         self._btn_stop = QPushButton("Stop")
         self._btn_stop.setEnabled(False)
@@ -561,19 +555,18 @@ class MainWindow(QWidget):
         btn_row.addWidget(self._btn_stop)
         root.addLayout(btn_row)
 
-        peak_box = QGroupBox("Peak readout")
+        peak_box = QGroupBox("Peak")
         peak_layout = QVBoxLayout(peak_box)
+        peak_layout.setContentsMargins(4, 4, 4, 4)
+        peak_layout.setSpacing(1)
         self._peak_view = QLabel()
-        self._peak_view.setFont(QFont("monospace", 10))
+        self._peak_view.setFont(QFont("monospace", 7))
         self._peak_view.setText("Idle")
         peak_layout.addWidget(self._peak_view)
         root.addWidget(peak_box)
 
         self._stack = QStackedWidget()
-        self._placeholder = QLabel(
-            "Expand “Show different mode & receive port…” if you need to change them, then Start.\n"
-            "Stop before switching ports (controls lock while running)."
-        )
+        self._placeholder = QLabel("Press Start")
         self._placeholder.setAlignment(Qt.AlignCenter)
         self._stack.addWidget(self._placeholder)
         root.addWidget(self._stack, stretch=1)
@@ -593,28 +586,26 @@ class MainWindow(QWidget):
     def _on_advanced_toggled(self, on: bool) -> None:
         self._advanced.setVisible(on)
         self._btn_advanced.setText(
-            "Hide advanced parameters…" if on else "Show advanced parameters…"
+            "Hide…" if on else "Advanced…"
         )
 
     def _on_mode_port_toggled(self, on: bool) -> None:
         self._mode_port_panel.setVisible(on)
         self._btn_mode_port.setText(
-            "Hide mode & receive port…" if on else "Show different mode & receive port…"
+            "Hide…" if on else "Mode/Port…"
         )
 
     def _update_mode_port_summary(self) -> None:
-        mode = "TX/RX test (tone + RX FFT)" if self._rb_txrx.isChecked() else "RX only"
+        mode = "TX/RX" if self._rb_txrx.isChecked() else "RX"
         if self._rb_a_rx2.isChecked():
-            port = "Channel A — RX2"
+            port = "A-RX2"
         elif self._rb_a_txrx.isChecked():
-            port = "Channel A — TX/RX"
+            port = "A-TX/RX"
         elif self._rb_b_rx2.isChecked():
-            port = "Channel B — RX2"
+            port = "B-RX2"
         else:
-            port = "Channel B — TX/RX"
-        self._mode_port_summary.setText(
-            f"<b>Current:</b> {mode} · <b>Receive port:</b> {port}"
-        )
+            port = "B-TX/RX"
+        self._mode_port_summary.setText(f"{mode} · {port}")
 
     def _sync_tx_controls(self) -> None:
         tx_on = self._rb_txrx.isChecked()
